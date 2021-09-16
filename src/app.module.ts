@@ -19,6 +19,7 @@ import { MailboxModule } from './mailbox/mailbox.module';
       password: process.env.DATABASE_PASSWORD,
       database: process.env.DATABASE_NAME,
       entities: [MailBoxEntity, EnvelopeEntity],
+      // extra: {socketPath: process.env.DATABASE_SOCKET},
       synchronize: true,
     }),
   ],

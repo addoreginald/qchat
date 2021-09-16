@@ -26,8 +26,8 @@ export class CreateEnvelopeDto {
   @IsNotEmpty()
   receiver_reference: string;
 
-  @ApiProperty({ type: String, default: '' })
-  @IsNotEmpty()
+  @ApiProperty({ type: String, default: '', required: false })
+  @IsOptional()
   mail_box_reference: string;
 
   @ApiProperty({ type: 'string', format: 'binary', required: false })

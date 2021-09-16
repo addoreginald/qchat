@@ -8,5 +8,6 @@ import { MailBoxEntity } from 'src/entities/mailbox.entity';
   imports: [TypeOrmModule.forFeature([MailBoxEntity])],
   controllers: [MailboxController],
   providers: [MailboxService],
+  exports: [MailboxService],
 })
 export class MailboxModule {}

@@ -6,6 +6,8 @@
   "private": true,
   "license": "UNLICENSED",
   "scripts": {
+    "deploy": "npm run build && docker build . -t qchat-api && docker tag qchat-api gcr.io/mftl-platform/qchat-api && docker push gcr.io/mftl-platform/qchat-api",
+    "deploy-local": "npm run build && docker build . -t qchat-api",
     "prebuild": "rimraf dist",
     "build": "nest build",
     "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
