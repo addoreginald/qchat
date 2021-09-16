@@ -22,14 +22,23 @@ export class EnvelopeService {
 
     // check if this envelope does not have a mail box and create one
     if (!body.mail_box_reference) {
-      mailbox = await this.mailBoxService.create({
-        owner_reference: body.sender_reference,
-        owner_name: body.sender_name,
-        owner_image: '',
-        recipient_reference: body.receiver_reference,
-        recipient_name: body.receiver_name,
-        recipient_image: '',
-      });
+      // Check if mail box exists
+      const existingMailBox = await this.mailBoxService.find(
+        body.sender_reference,
+      );
+
+      if (existingMailBox.length === 0) {
+        mailbox = await this.mailBoxService.create({
+          owner_reference: body.sender_reference,
+          owner_name: body.sender_name,
+          owner_image: '',
+          recipient_reference: body.receiver_reference,
+          recipient_name: body.receiver_name,
+          recipient_image: '',
+        });
+      } else {
+        mailbox = existingMailBox[0];
+      }
     }
 
     // create envelope object
@@ -41,7 +50,9 @@ export class EnvelopeService {
       sender_reference: body.sender_reference,
       receiver_reference: body.receiver_reference,
       sent_on: new Date(),
-      mail_box_reference: body.mail_box_reference ?? mailbox.reference,
+      mail_box_reference: body.mail_box_reference
+        ? body.mail_box_reference
+        : mailbox.reference,
       attachment: body.attachment,
       attachment_type: body.attachment_type,
     });
