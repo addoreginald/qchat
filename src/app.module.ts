@@ -1,9 +1,12 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
+import { APP_INTERCEPTOR } from '@nestjs/core';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { EnvelopeEntity } from './entities/envelope.entity';
 import { MailBoxEntity } from './entities/mailbox.entity';
 import { EnvelopeModule } from './envelope/envelope.module';
+import { HttpResponseTransformInterceptor } from './interceptors/httpResponseTransform.interceptor';
+import { RequestLoggerInterceptor } from './interceptors/requestLogger.interceptor';
 import { MailboxModule } from './mailbox/mailbox.module';
 
 @Module({
@@ -24,6 +27,9 @@ import { MailboxModule } from './mailbox/mailbox.module';
     }),
   ],
   controllers: [],
-  providers: [],
+  providers: [
+    { provide: APP_INTERCEPTOR, useClass: RequestLoggerInterceptor },
+    { provide: APP_INTERCEPTOR, useClass: HttpResponseTransformInterceptor },
+  ],
 })
 export class AppModule {}
