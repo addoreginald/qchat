@@ -17,7 +17,7 @@ export class MailboxService {
 
     // create mail box A
     const mailboxA = this.mailboxRepository.create({
-      reference: conversation_reference,
+      reference: body.reference ?? conversation_reference,
       owner_reference: body.owner_reference,
       recipient_reference: body.recipient_reference,
       recipient_image: body.recipient_image,
@@ -28,7 +28,7 @@ export class MailboxService {
 
     // create mailbox B
     const mailboxB = this.mailboxRepository.create({
-      reference: conversation_reference,
+      reference: body.reference ?? conversation_reference,
       owner_reference: body.recipient_reference,
       recipient_reference: body.owner_reference,
       recipient_image: body.owner_image,
@@ -40,7 +40,7 @@ export class MailboxService {
     return ownerMailbox;
   }
 
-  async find(owner_reference: string) {
-    return await this.mailboxRepository.find({ where: { owner_reference } });
+  async find(query: any) {
+    return await this.mailboxRepository.find({ where: { ...query } });
   }
 }

@@ -10,7 +10,7 @@ export class MailboxController {
 
   @Get()
   find(@Query('owner_reference') owner_reference: string) {
-    return this.service.find(owner_reference);
+    return this.service.find({ owner_reference });
   }
 
   @Post()

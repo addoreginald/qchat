@@ -25,4 +25,8 @@ export class CreateMailBoxDto {
   @ApiProperty({ type: String, default: '', required: false })
   @IsOptional()
   recipient_image: string;
+
+  @ApiProperty({ type: String, default: '', required: false })
+  @IsOptional()
+  reference: string;
 }

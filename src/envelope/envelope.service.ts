@@ -21,25 +21,7 @@ export class EnvelopeService {
     let mailbox: MailBoxEntity;
 
     // check if this envelope does not have a mail box and create one
-    if (!body.mail_box_reference) {
-      // Check if mail box exists
-      const existingMailBox = await this.mailBoxService.find(
-        body.sender_reference,
-      );
-
-      if (existingMailBox.length === 0) {
-        mailbox = await this.mailBoxService.create({
-          owner_reference: body.sender_reference,
-          owner_name: body.sender_name,
-          owner_image: '',
-          recipient_reference: body.receiver_reference,
-          recipient_name: body.receiver_name,
-          recipient_image: '',
-        });
-      } else {
-        mailbox = existingMailBox[0];
-      }
-    }
+    mailbox = await this.provisionNewMailBox(body);
 
     // create envelope object
     const envelopeInstance = this.envelopeRepository.create({
@@ -66,6 +48,34 @@ export class EnvelopeService {
       status: ENVELOPE_STATUS.RECEIVED_BY_POST_OFFICE,
       envelope_reference: newEnvelope.envelope_reference,
     };
+  }
+
+  private async provisionNewMailBox(body: CreateEnvelopeDto) {
+    // Check if mail box exists
+    const existingMailBox = await this.mailBoxService.find({
+      reference: body.mail_box_reference,
+    });
+
+    // declare mailbox
+    let mailbox: MailBoxEntity;
+
+    if (existingMailBox.length === 0) {
+      mailbox = await this.mailBoxService.create({
+        owner_reference: body.sender_reference,
+        owner_name: body.sender_name,
+        owner_image: '',
+        recipient_reference: body.receiver_reference,
+        recipient_name: body.receiver_name,
+        recipient_image: '',
+        reference: body.mail_box_reference,
+      });
+    } else {
+      mailbox = existingMailBox.filter(
+        (mb) => mb.owner_reference === body.sender_reference,
+      )[0];
+    }
+
+    return mailbox;
   }
 
   async find(mail_box_reference: string, pagination: IPaginationOptions) {
