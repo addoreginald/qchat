@@ -26,6 +26,8 @@ export class EnvelopeService {
     // check if this envelope does not have a mail box and create one
     mailbox = await this.provisionNewMailBox(body);
 
+    const sent_on = new Date();
+
     // create envelope object
     const envelopeInstance = this.envelopeRepository.create({
       envelope_reference: body.envelope_reference,
@@ -34,7 +36,7 @@ export class EnvelopeService {
       receiver_name: body.receiver_name,
       sender_reference: body.sender_reference,
       receiver_reference: body.receiver_reference,
-      sent_on: new Date(),
+      sent_on: sent_on,
       mail_box_reference: body.mail_box_reference
         ? body.mail_box_reference
         : mailbox.reference,
@@ -51,7 +53,20 @@ export class EnvelopeService {
       title: `${body.sender_name} sent you a message`,
       type: 'announce',
       body: `${body.message}`,
-      extra: newEnvelope,
+      extra: {
+        envelope_reference: body.envelope_reference,
+        message: body.message,
+        sender_name: body.sender_name,
+        receiver_name: body.receiver_name,
+        sender_reference: body.sender_reference,
+        receiver_reference: body.receiver_reference,
+        sent_on: sent_on.toISOString(),
+        mail_box_reference: body.mail_box_reference
+          ? body.mail_box_reference
+          : mailbox.reference,
+        attachment: body.attachment,
+        attachment_type: body.attachment_type,
+      },
     });
 
     // create a receipt  and return it
@@ -93,6 +108,7 @@ export class EnvelopeService {
   async find(mail_box_reference: string, pagination: IPaginationOptions) {
     return await paginate<EnvelopeEntity>(this.envelopeRepository, pagination, {
       where: { mail_box_reference },
+      order: { created_at: 'ASC' },
     });
   }
 }
