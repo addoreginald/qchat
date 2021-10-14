@@ -1,6 +1,8 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
+import { WebhookService } from 'mftl-webhook';
 import { IPaginationOptions, paginate } from 'nestjs-typeorm-paginate';
+import { events } from 'src/app.module';
 import { CreateEnvelopeDto } from 'src/dtos/envelope.dto';
 import { EnvelopeEntity } from 'src/entities/envelope.entity';
 import { MailBoxEntity } from 'src/entities/mailbox.entity';
@@ -14,6 +16,7 @@ export class EnvelopeService {
     @InjectRepository(EnvelopeEntity)
     private envelopeRepository: Repository<EnvelopeEntity>,
     private mailBoxService: MailboxService,
+    private webhookService: WebhookService,
   ) {}
 
   async create(body: CreateEnvelopeDto) {
@@ -41,6 +44,15 @@ export class EnvelopeService {
 
     // save in database
     const newEnvelope = await this.envelopeRepository.save(envelopeInstance);
+
+    // dispatch new envelope webhook
+    this.webhookService.dispatch(events.ENVELOPE_CREATED, {
+      user_id: body.receiver_reference,
+      title: `${body.sender_name} sent you a message`,
+      type: 'announce',
+      body: `${body.message}`,
+      extra: newEnvelope,
+    });
 
     // create a receipt  and return it
     return {

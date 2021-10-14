@@ -1,3 +1,4 @@
+import { SyncModule } from './sync/sync.module';
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { APP_INTERCEPTOR } from '@nestjs/core';
@@ -8,9 +9,22 @@ import { EnvelopeModule } from './envelope/envelope.module';
 import { HttpResponseTransformInterceptor } from './interceptors/httpResponseTransform.interceptor';
 import { RequestLoggerInterceptor } from './interceptors/requestLogger.interceptor';
 import { MailboxModule } from './mailbox/mailbox.module';
+import {
+  WebhookEntity,
+  WebhookModule,
+  WebhookRequestEntity,
+} from 'mftl-webhook';
+
+// Events
+// ======
+
+export const events = {
+  ENVELOPE_CREATED: 'ENVELOPE_CREATED',
+};
 
 @Module({
   imports: [
+    SyncModule,
     EnvelopeModule,
     MailboxModule,
     ConfigModule.forRoot({ envFilePath: '.env', isGlobal: true }),
@@ -21,10 +35,18 @@ import { MailboxModule } from './mailbox/mailbox.module';
       username: process.env.DATABASE_USERNAME,
       password: process.env.DATABASE_PASSWORD,
       database: process.env.DATABASE_NAME,
-      entities: [MailBoxEntity, EnvelopeEntity],
+      entities: [
+        MailBoxEntity,
+        EnvelopeEntity,
+        WebhookEntity,
+        WebhookRequestEntity,
+      ],
       // extra: {socketPath: process.env.DATABASE_SOCKET},
       synchronize: true,
     }),
+
+    // Webhook
+    WebhookModule.register(events, { maxRedirects: 5, timeout: 5000 }),
   ],
   controllers: [],
   providers: [
