@@ -21,10 +21,10 @@ export class EnvelopeService {
 
   async create(body: CreateEnvelopeDto) {
     // decalre mailbox
-    let mailbox: MailBoxEntity;
+    let mailboxes: { sender: MailBoxEntity; recepient: MailBoxEntity };
 
     // check if this envelope does not have a mail box and create one
-    mailbox = await this.provisionNewMailBox(body);
+    mailboxes = await this.updateMailBox(body);
 
     const sent_on = new Date();
 
@@ -39,7 +39,7 @@ export class EnvelopeService {
       sent_on: sent_on,
       mail_box_reference: body.mail_box_reference
         ? body.mail_box_reference
-        : mailbox.reference,
+        : mailboxes.sender.reference,
       attachment: body.attachment,
       attachment_type: body.attachment_type,
     });
@@ -54,18 +54,21 @@ export class EnvelopeService {
       type: 'announce',
       body: `${body.message}`,
       extra: {
-        envelope_reference: body.envelope_reference,
-        message: body.message,
-        sender_name: body.sender_name,
-        receiver_name: body.receiver_name,
-        sender_reference: body.sender_reference,
-        receiver_reference: body.receiver_reference,
-        sent_on: sent_on.toISOString(),
-        mail_box_reference: body.mail_box_reference
-          ? body.mail_box_reference
-          : mailbox.reference,
-        attachment: body.attachment,
-        attachment_type: body.attachment_type,
+        envelope: {
+          envelope_reference: body.envelope_reference,
+          message: body.message,
+          sender_name: body.sender_name,
+          receiver_name: body.receiver_name,
+          sender_reference: body.sender_reference,
+          receiver_reference: body.receiver_reference,
+          sent_on: sent_on.toISOString(),
+          mail_box_reference: body.mail_box_reference
+            ? body.mail_box_reference
+            : mailboxes.sender.reference,
+          attachment: body.attachment,
+          attachment_type: body.attachment_type,
+        },
+        mailbox: mailboxes.recepient,
       },
     });
 
@@ -77,17 +80,14 @@ export class EnvelopeService {
     };
   }
 
-  private async provisionNewMailBox(body: CreateEnvelopeDto) {
+  private async updateMailBox(body: CreateEnvelopeDto) {
     // Check if mail box exists
     const existingMailBox = await this.mailBoxService.find({
       reference: body.mail_box_reference,
     });
 
-    // declare mailbox
-    let mailbox: MailBoxEntity;
-
     if (existingMailBox.length === 0) {
-      mailbox = await this.mailBoxService.create({
+      await this.mailBoxService.create({
         owner_reference: body.sender_reference,
         owner_name: body.sender_name,
         owner_image: '',
@@ -95,14 +95,29 @@ export class EnvelopeService {
         recipient_name: body.receiver_name,
         recipient_image: '',
         reference: body.mail_box_reference,
+        recent_message: body.message,
       });
     } else {
-      mailbox = existingMailBox.filter(
-        (mb) => mb.owner_reference === body.sender_reference,
-      )[0];
+      // update mailboxes
+      await this.mailBoxService.update(existingMailBox[0].reference, {
+        recent_message: body.message,
+        recent_message_date: new Date().toISOString(),
+      });
     }
 
-    return mailbox;
+    // get mailboxes
+    const updatedMailBox = await this.mailBoxService.find({
+      reference: body.mail_box_reference,
+    });
+
+    return {
+      sender: updatedMailBox.filter(
+        (mb) => mb.owner_reference === body.sender_reference,
+      )[0],
+      recepient: updatedMailBox.filter(
+        (mb) => mb.owner_reference === body.receiver_reference,
+      )[0],
+    };
   }
 
   async find(mail_box_reference: string, pagination: IPaginationOptions) {

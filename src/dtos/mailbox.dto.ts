@@ -29,4 +29,18 @@ export class CreateMailBoxDto {
   @ApiProperty({ type: String, default: '', required: false })
   @IsOptional()
   reference: string;
+
+  @ApiProperty({ type: String, default: '', required: false })
+  @IsOptional()
+  recent_message: string;
+}
+
+export class UpdateMailBoxDto {
+  @ApiProperty({ type: String, default: '', required: false })
+  @IsOptional()
+  recent_message: string;
+
+  @ApiProperty({ type: String, default: '', required: false })
+  @IsOptional()
+  recent_message_date: string;
 }

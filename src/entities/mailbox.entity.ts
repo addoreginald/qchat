@@ -17,4 +17,10 @@ export class MailBoxEntity extends BaseEntity {
 
   @Column({ type: 'varchar', nullable: true, length: 255 })
   recipient_image: string;
+
+  @Column({ type: 'text', nullable: true })
+  recent_message: string;
+
+  @Column({ type: 'varchar', nullable: true, length: 255 })
+  recent_message_date: string;
 }
